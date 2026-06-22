@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📱 SmartSpend AI – Multi-Tenant Engineering Portfolio Dashboard
 
-## Getting Started
+SmartSpend AI is a premium, high-performance financial intelligence dashboard engineered with an absolute focus on security isolation and granular transactional tracking. Built on Next.js 16 (React 19) and backed by a Supabase PostgreSQL infrastructure, the application features an isolated sandboxed matrix architecture that bypasses typical public API scaling barriers.
 
-First, run the development server:
+---
 
+## 🚀 Key Engineering Core Features
+
+* **Strict Multi-Tenant Sandbox Isolation:** Automatically computes unique transactional identification hashes (`user_id_username`) down to the database row layer. New logins initialize a pristine blank slate ledger, while existing session tokens pull tightly scoped relational blocks.
+* **Custom Database-Driven Inline Auth Engine:** Implements a custom structural credentials mapper (`users_credential` table in Postgres). This eliminates standard email rate limits (`2/hr` on cloud edge nodes) and domain validation constraints completely for instant logins.
+* **Dynamic Intelligence Ledger UI:** High-performance dashboard featuring responsive metric cards (Net Liquid Balance, Capital Burn), an interactive Category Allocation Pie Chart, and localized INR formatting.
+* **Extension-Shielded Hydration Architecture:** Leverages custom DOM attributes and tag termination patterns to prevent hydration crashing caused by browser autofill systems and extension injections (Grammarly, Password Managers).
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+* **Frontend UI Matrix:** Next.js 16 (App Router), React 19, Tailwind CSS, Lucide Icons.
+* **Database Engine:** Supabase / Cloud PostgreSQL Core.
+* **State Hydration Safeguard:** Integrated `suppressHydrationWarning` and strict self-closing component architectures.
+
+---
+
+## 🚦 Getting Started (Local Development)
+
+### 1. Install Project Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+npm install
