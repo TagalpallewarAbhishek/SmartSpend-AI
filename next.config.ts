@@ -1,7 +1,19 @@
-import type { NextConfig } from "next";
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  swMinify: true,
+  disable: process.env.NODE_ENV === "development", // Only runs service workers in production
+  workboxOptions: {
+    expirationEntries: 50,
+  },
+});
 
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  turbopack: {}, // This silences the custom webpack plugin warning under Turbopack
 };
 
-export default nextConfig;
+module.exports = withPWA(nextConfig);

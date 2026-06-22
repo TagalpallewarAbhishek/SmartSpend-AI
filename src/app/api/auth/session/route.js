@@ -1,0 +1,10 @@
+import { NextResponse } from 'next/server';
+import { supabase } from '@/utils/supabase';
+
+export async function GET() {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    return NextResponse.json({ user: null }, { status: 200 });
+  }
+  return NextResponse.json({ user }, { status: 200 });
+}
