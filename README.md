@@ -96,6 +96,8 @@ The **SmartSpend AI Budget Coach** bypasses standard chatbot configurations by u
 ---
 
 ## 📁 Repository Structure
+
+```text
 .
 ├── src/
 │   ├── app/
@@ -111,7 +113,6 @@ The **SmartSpend AI Budget Coach** bypasses standard chatbot configurations by u
 ├── README.md
 ├── package.json
 └── tailwind.config.js
-
 
 ---
 
