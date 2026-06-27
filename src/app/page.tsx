@@ -1,39 +1,69 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, ArrowUpRight, ArrowDownRight, Wallet, ReceiptIndianRupee, Tag, Trash2, Sparkles, FolderPlus, PieChart as ChartIcon } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
+// 🧩 STRONGLY TYPED STRUCTURAL INTERFACES
+interface Transaction {
+  id: string;
+  type: string;
+  category: string;
+  amount: string | number;
+  description: string;
+  date: string;
+}
+
+interface CategoryItem {
+  id: string;
+  name: string;
+}
+
+interface BudgetLimits {
+  [key: string]: number;
+}
+
+interface UserSession {
+  id: string;
+  email?: string;
+  username?: string;
+}
+
+interface TransactionStatus {
+  success: boolean | null;
+  message: string;
+}
+
 export default function Home() {
   // Form State Values
-  const [amount, setAmount] = useState('');
-  const [type, setType] = useState('expense');
-  const [category, setCategory] = useState('food');
-  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState<string>('');
+  const [type, setType] = useState<string>('expense');
+  const [category, setCategory] = useState<string>('food');
+  const [description, setDescription] = useState<string>('');
   
   // UI Status Tracking
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState({ success: null, message: '' });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [status, setStatus] = useState<TransactionStatus>({ success: null, message: '' });
 
   // INTERACTIVE FILTER STATES
-  const [selectedDay, setSelectedDay] = useState(null); 
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(null); 
+  const [selectedDay, setSelectedDay] = useState<number | null>(null); 
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string | null>(null); 
 
   // Data storage arrays
-  const [localLedger, setLocalLedger] = useState([]);
+  const [localLedger, setLocalLedger] = useState<Transaction[]>([]);
 
-  // DYNAMIC CATEGORIES LIST STATE (Predefined + Custom Category Management)
-  const [customCategories, setCustomCategories] = useState([
+  // DYNAMIC CATEGORIES LIST STATE
+  const [customCategories, setCustomCategories] = useState<CategoryItem[]>([
     { id: 'food', name: '🍔 Food & Canteen' },
     { id: 'travel', name: '🚗 Travel / Auto' },
     { id: 'entertainment', name: '🎬 Entertainment / OTT' },
     { id: 'academics', name: '📚 Books & Academics' },
     { id: 'others', name: '💡 Other / Unclassified' }
   ]);
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
 
   // DYNAMIC BUDGET LIMITS STATE
-  const [categoryBudgets, setCategoryBudgets] = useState({
+  const [categoryBudgets, setCategoryBudgets] = useState<BudgetLimits>({
     food: 3000,
     travel: 1500,
     entertainment: 2000,
@@ -42,20 +72,20 @@ export default function Home() {
   });
 
   // AUTHENTICATION STATES
-  const [user, setUser] = useState(null);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
+  const [user, setUser] = useState<UserSession | null>(null);
+  const [authEmail, setAuthEmail] = useState<string>('');
+  const [authPassword, setAuthPassword] = useState<string>('');
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
 
   // MATH ENGINE: Compute real-time running metrics out of our active data stream array
   const totalIncome = localLedger
     .filter(item => item.type === 'income')
-    .reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    .reduce((sum, item) => sum + parseFloat(item.amount as string), 0);
 
   const totalExpenses = localLedger
     .filter(item => item.type === 'expense')
-    .reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    .reduce((sum, item) => sum + parseFloat(item.amount as string), 0);
 
   const totalBalance = totalIncome - totalExpenses;
 
@@ -70,13 +100,15 @@ export default function Home() {
       if (!user?.id) return; // Don't run a fetch pass if no one is logged in
       
       try {
-        // Pass the user id via query parameters cleanly
         const response = await fetch(`/api/transactions?userId=${user.id}`);
         const result = await response.json();
         if (response.ok) {
-          const normalized = (result.transactions || []).map(t => ({
-            ...t,
+          const normalized = (result.transactions || []).map((t: any) => ({
+            id: t.id || Math.random().toString(),
+            type: t.type || 'expense',
             category: t.category ? t.category.toLowerCase().trim() : 'others',
+            amount: t.amount,
+            description: t.description || '',
             date: t.transaction_date || t.date
           }));
           setLocalLedger(normalized);
@@ -86,7 +118,7 @@ export default function Home() {
       }
     };
     fetchHistoricLedger();
-  }, [user]); // Fires instantly whenever a session user token changes; // Re-fetch data if user logs in/out
+  }, [user]);
 
   // Dynamic Session Tracking Listener
   useEffect(() => {
@@ -105,7 +137,7 @@ export default function Home() {
   }, []);
 
   // Handle Custom Category Creation
-  const handleAddCustomCategory = (e) => {
+  const handleAddCustomCategory = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
 
@@ -128,7 +160,8 @@ export default function Home() {
 
     setNewCategoryName('');
   };
-const handleAuthenticationAction = async (e) => {
+
+  const handleAuthenticationAction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!authEmail || !authPassword) return;
 
@@ -136,7 +169,6 @@ const handleAuthenticationAction = async (e) => {
     const endpoint = isSignUp ? '/api/auth/signup' : '/api/auth/login';
 
     try {
-      // 📡 Pass inputs back to our true backend server script engines
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,10 +177,8 @@ const handleAuthenticationAction = async (e) => {
       const result = await response.json();
 
       if (response.ok && result.user) {
-        // Only set session if backend explicitly verifies credentials
         setUser(result.user);
       } else {
-        // Show validation or conflict errors (e.g., username taken, wrong password)
         alert(`Authentication Error: ${result.error || 'Invalid credentials token configuration.'}`);
       }
     } catch (err) {
@@ -158,7 +188,6 @@ const handleAuthenticationAction = async (e) => {
       setAuthLoading(false);
     }
   };
-      const cleanUsername = authEmail.trim().toLowerCase();
     
   const handleSignOutAction = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -166,7 +195,7 @@ const handleAuthenticationAction = async (e) => {
     setLocalLedger([]);
   };
 
-  const handleSubmitTransaction = async (e) => {
+  const handleSubmitTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
       setStatus({ success: false, message: 'Please enter a valid amount greater than 0.' });
@@ -176,9 +205,9 @@ const handleAuthenticationAction = async (e) => {
     setLoading(true);
     setStatus({ success: null, message: 'Processing transaction data...' });
 
-  const targetCategory = category.toLowerCase().trim();
+    const targetCategory = category.toLowerCase().trim();
     const transactionData = {
-      user_id: user?.id, // 👈 Remapped to use the user's specific unique username ID string
+      user_id: user?.id,
       amount: parseFloat(amount),
       type,
       category: targetCategory, 
@@ -198,7 +227,7 @@ const handleAuthenticationAction = async (e) => {
       if (response.ok) {
         setStatus({ success: true, message: 'Transaction securely added to PostgreSQL cloud!' });
         
-        const newRow = {
+        const newRow: Transaction = {
           id: result.transaction?.id || Math.random().toString(),
           amount: result.transaction?.amount || transactionData.amount,
           type: result.transaction?.type || transactionData.type,
@@ -220,7 +249,7 @@ const handleAuthenticationAction = async (e) => {
     }
   };
 
-  const handleDeleteTransaction = async (id) => {
+  const handleDeleteTransaction = async (id: string) => {
     if (!confirm('Are you sure you want to remove this transaction entry?')) return;
     try {
       const response = await fetch(`/api/transactions?id=${id}`, { method: 'DELETE' });
@@ -231,14 +260,14 @@ const handleAuthenticationAction = async (e) => {
       alert('Network error: Could not reach server.');
     }
   };
-  const [aiAnalysis, setAiAnalysis] = useState('');
-const [aiLoading, setAiLoading] = useState(false);
+
+  const [aiAnalysis, setAiAnalysis] = useState<string>('');
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
 
   const handleTriggerAiConsultation = async () => {
     setAiLoading(true);
     setAiAnalysis('');
     try {
-      // 🔒 FIXED: Extract the raw string ID directly from your session state object
       const targetUserId = user?.id; 
 
       if (!targetUserId) {
@@ -247,7 +276,6 @@ const [aiLoading, setAiLoading] = useState(false);
         return;
       }
 
-      // 🔄 Hit the updated POST endpoint and pass the isolation token in the request body
       const response = await fetch('/api/ai-analyze', {
         method: 'POST',
         headers: {
@@ -275,7 +303,7 @@ const [aiLoading, setAiLoading] = useState(false);
   const pieChartData = customCategories.map((cat) => {
     const spent = localLedger
       .filter(item => item.type === 'expense' && item.category === cat.id)
-      .reduce((sum, item) => sum + parseFloat(item.amount), 0);
+      .reduce((sum, item) => sum + parseFloat(item.amount as string), 0);
     return { name: cat.id.toUpperCase(), value: spent };
   }).filter(item => item.value > 0);
 
@@ -292,7 +320,7 @@ const [aiLoading, setAiLoading] = useState(false);
             <p className="text-xs text-slate-400 font-sans">Secure engineering portal login</p>
           </div>
 
-         <form onSubmit={handleAuthenticationAction} className="space-y-4">
+          <form onSubmit={handleAuthenticationAction} className="space-y-4">
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">Account Username</label>
               <input 
@@ -301,9 +329,8 @@ const [aiLoading, setAiLoading] = useState(false);
                 placeholder="e.g., abhishek123" 
                 value={authEmail} 
                 onChange={(e) => setAuthEmail(e.target.value)} 
-                suppressHydrationWarning={true} // 👈 Silences extension tags injection crashes
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono" 
-              /> {/* 👈 Crucial: Self-closing tag fixed */}
+              />
             </div>
 
             <div>
@@ -314,9 +341,8 @@ const [aiLoading, setAiLoading] = useState(false);
                 placeholder="••••••••" 
                 value={authPassword} 
                 onChange={(e) => setAuthPassword(e.target.value)} 
-                suppressHydrationWarning={true} // 👈 Silences extension tags injection crashes
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono" 
-              /> {/* 👈 Crucial: Self-closing tag fixed */}
+              />
             </div>
 
             <button 
@@ -352,7 +378,7 @@ const [aiLoading, setAiLoading] = useState(false);
           <div className="flex items-center gap-4 text-sm text-slate-400">
             <div className="hidden sm:flex items-center gap-2">
               <span>Sync Channel:</span>
-              <span className="font-mono text-xs text-slate-300 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md truncate max-w-[150px]">{user.email}</span>
+              <span className="font-mono text-xs text-slate-300 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md truncate max-w-[150px]">{user.email || user.username}</span>
             </div>
             <button 
               onClick={handleSignOutAction}
@@ -467,12 +493,17 @@ const [aiLoading, setAiLoading] = useState(false);
               </div>
 
               <div className="flex items-center gap-1.5 mb-4 bg-slate-950 p-1.5 rounded-xl border border-slate-800/60">
-                <select id="budgetCategorySelect" className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-0.5 text-[11px] text-slate-300 focus:outline-none">
+                <select 
+                  id="budgetCategorySelect" 
+                  className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-0.5 text-[11px] text-slate-300 focus:outline-none"
+                  defaultValue="food"
+                >
                   {customCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.id}</option>)}
                 </select>
                 <input type="number" placeholder="New Cap" id="budgetCapInputField" className="w-16 bg-slate-900 border border-slate-800 rounded-lg px-2 py-0.5 text-[11px] font-mono text-white focus:outline-none focus:border-indigo-500" onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    const cat = document.getElementById('budgetCategorySelect').value;
+                    const selectEl = document.getElementById('budgetCategorySelect') as HTMLSelectElement | null;
+                    const cat = selectEl ? selectEl.value : 'food';
                     const val = parseFloat(e.currentTarget.value);
                     if (val && val > 0) {
                       setCategoryBudgets({ ...categoryBudgets, [cat]: val });
@@ -485,8 +516,8 @@ const [aiLoading, setAiLoading] = useState(false);
               <div className="space-y-3.5">
                 {customCategories.map((bgt) => {
                   const activeLimit = categoryBudgets[bgt.id] || 2000;
-                  const totalSpentOnCategory = localLedger.filter(item => item.category === bgt.id).reduce((sum, item) => sum + parseFloat(item.amount), 0);
-                  const expenseSpentOnly = localLedger.filter(item => item.type === 'expense' && item.category === bgt.id).reduce((sum, item) => sum + parseFloat(item.amount), 0);
+                  const totalSpentOnCategory = localLedger.filter(item => item.category === bgt.id).reduce((sum, item) => sum + parseFloat(item.amount as string), 0);
+                  const expenseSpentOnly = localLedger.filter(item => item.type === 'expense' && item.category === bgt.id).reduce((sum, item) => sum + parseFloat(item.amount as string), 0);
                   const percentage = Math.min((expenseSpentOnly / activeLimit) * 100, 100);
                   const isCoreCategory = ['food', 'travel', 'entertainment', 'academics', 'others'].includes(bgt.id);
                   const isSafeToDelete = !isCoreCategory && totalSpentOnCategory === 0;
@@ -566,8 +597,8 @@ const [aiLoading, setAiLoading] = useState(false);
                   const dayNumber = i + 1;
                   const dayString = `2026-06-${dayNumber.toString().padStart(2, '0')}`;
                   const dayTransactions = localLedger.filter(item => item.date === dayString);
-                  const dayIncome = dayTransactions.filter(t => t.type === 'income').reduce((s, t) => s + parseFloat(t.amount), 0);
-                  const dayExpenses = dayTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + parseFloat(t.amount), 0);
+                  const dayIncome = dayTransactions.filter(t => t.type === 'income').reduce((s, t) => s + parseFloat(t.amount as string), 0);
+                  const dayExpenses = dayTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + parseFloat(t.amount as string), 0);
                   const netDayBalance = dayIncome - dayExpenses;
                   
                   let dayHighlightClass = "border-slate-900 text-slate-500 bg-slate-950/40 hover:border-slate-800";
@@ -623,7 +654,6 @@ const [aiLoading, setAiLoading] = useState(false);
                             {row.type === 'income' ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                           </div>
                           
-                          {/* DYNAMIC HIGH-CONTRAST INVERTED CATEGORY LABELS */}
                           <div className="flex flex-col truncate">
                             <span className="text-slate-100 text-sm font-bold capitalize tracking-wide">
                               {row.category}
@@ -637,7 +667,7 @@ const [aiLoading, setAiLoading] = useState(false);
                         </td>
                         
                         <td className="p-3 text-slate-400 font-mono">{row.date}</td>
-                        <td className={`p-3 text-right font-mono font-bold ${row.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>{row.type === 'income' ? '+' : '-'}₹{parseFloat(row.amount).toFixed(2)}</td>
+                        <td className={`p-3 text-right font-mono font-bold ${row.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>{row.type === 'income' ? '+' : '-'}₹{parseFloat(row.amount as string).toFixed(2)}</td>
                         
                         <td className="p-3 text-center">
                           <button onClick={() => handleDeleteTransaction(row.id)} className="p-1 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"><Trash2 className="h-3.5 w-3.5" /></button>
