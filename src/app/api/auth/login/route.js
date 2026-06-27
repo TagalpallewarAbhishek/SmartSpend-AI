@@ -1,33 +1,44 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
+import bcrypt from 'bcryptjs'; // 👈 Import bcrypt
 
 export async function POST(request) {
   try {
     const { email: username, password } = await request.json();
 
-    // 🛑 Guard rail: Ensure credentials are pass in completely
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password are required.' }, { status: 400 });
-    } // 👈 This closing brace was missing or misaligned!
+    }
 
-   const cleanUsername = username.trim().toLowerCase();
-    
-    // 📧 Match the exact same gmail structure for database query lookups
-    const perfectEmail = `${cleanUsername}.smartspend@gmail.com`;
+    const cleanUsername = username.trim().toLowerCase();
 
-    // 🔑 Pass credentials to the Supabase authentication engine
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: perfectEmail,
-      password,
-    });
+    // 1. Fetch the user profile row
+    const { data: profile, error } = await supabase
+      .from('users_credential')
+      .select('*')
+      .eq('username', cleanUsername)
+      .single();
 
-    if (error) throw error;
+    if (error || !profile) {
+      return NextResponse.json({ error: 'Invalid username or password configuration.' }, { status: 401 });
+    }
 
-    // 🎉 Success: Send the authenticated user object back to your frontend
-    return NextResponse.json({ user: data.user }, { status: 200 });
+    // 2. Use bcrypt to safely compare the typed password with the encrypted hash
+    const isPasswordValid = await bcrypt.compare(password, profile.password);
+
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: 'Invalid username or password configuration.' }, { status: 401 });
+    }
+
+    return NextResponse.json({ 
+      user: { 
+        id: `user_id_${cleanUsername}`, 
+        email: `${cleanUsername}@smartspend.local`,
+        user_metadata: { username: cleanUsername }
+      } 
+    }, { status: 200 });
 
   } catch (err) {
-    console.error('Login Route Exception Fault:', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

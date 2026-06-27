@@ -7,7 +7,8 @@ import { GoogleGenAI } from '@google/genai';
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-export async function GET(request) {
+// 🔄 Changed from GET to POST to accept the incoming tenant isolation payload safely
+export async function POST(request) {
   try {
     // 3. Early crash preventer if the key dropped out
     if (!ai) {
@@ -17,11 +18,21 @@ export async function GET(request) {
       );
     }
 
-    // ... Keep everything else below this exactly the same! ...
-    // 2. Fetch the latest transactions from PostgreSQL so the AI can evaluate real data
+    // 🔒 Grab the specific isolated userId passing from your frontend request body
+    const { userId } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Tenant isolation key (userId) is required to process budget metrics.' },
+        { status: 400 }
+      );
+    }
+
+    // 🔑 CRITICAL FIX: Restrict data pulling to ONLY this specific user_id handle
     const { data: transactions, error: dbError } = await supabase
       .from('transactions')
       .select('*')
+      .eq('user_id', userId) // 👈 Sandbox boundary lock
       .order('transaction_date', { ascending: false });
 
     if (dbError) {
@@ -52,11 +63,11 @@ ${simplifiedLedger}
 ### RULES FOR RESPONSE FORMATTING:
 1. Speak direct, supportive, and action-oriented. Keep the tone engaging.
 2. Provide a high-level summary sentence regarding their liquid positions or saving trajectory.
-3. Deliver exactly 3 sharp, distinct bullet points highlighting noticeable patterns (e.g., heavy cash burn flags, profit margins, behavioral trends, or tactical ways to optimize recurring student lifestyle spending).
+3. Deliver exactly 3 sharp, distinct bullet points highlighting noticeable patterns (e.g., heavy cash burn flags, profit margins, behavioral trends, or tactical ways to optimize recurring lifestyle spending).
 4. Use neat Markdown tags for styling. Avoid generic filler statements.
 `;
 
-    // 6. Fire the structured prompt down to Google's super-fast Gemini 1.5 Flash model
+    // 6. Fire the structured prompt down to Google's super-fast Gemini model
     const aiResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: analyticalPrompt,

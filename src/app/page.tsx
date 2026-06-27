@@ -231,17 +231,38 @@ const handleAuthenticationAction = async (e) => {
       alert('Network error: Could not reach server.');
     }
   };
-
   const [aiAnalysis, setAiAnalysis] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
+const [aiLoading, setAiLoading] = useState(false);
 
   const handleTriggerAiConsultation = async () => {
     setAiLoading(true);
     setAiAnalysis('');
     try {
-      const response = await fetch('/api/ai-analyze');
+      // 🔒 FIXED: Extract the raw string ID directly from your session state object
+      const targetUserId = user?.id; 
+
+      if (!targetUserId) {
+        setAiAnalysis('❌ Session Error: No active isolation user ID found.');
+        setAiLoading(false);
+        return;
+      }
+
+      // 🔄 Hit the updated POST endpoint and pass the isolation token in the request body
+      const response = await fetch('/api/ai-analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: targetUserId }),
+      });
+
       const result = await response.json();
-      if (response.ok) setAiAnalysis(result.analysis);
+      
+      if (response.ok) {
+        setAiAnalysis(result.analysis);
+      } else {
+        setAiAnalysis(`❌ Server Refused Request: ${result.error || 'Unknown Error'}`);
+      }
     } catch (err) {
       setAiAnalysis('❌ Network Handshake Failure.');
     } finally {

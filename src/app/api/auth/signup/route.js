@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
+import bcrypt from 'bcryptjs'; // 👈 Import bcrypt
 
 export async function POST(request) {
   try {
@@ -10,26 +11,37 @@ export async function POST(request) {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    
-    // 📧 Switch to a standard gmail layout structure to glide past Supabase's built-in spam filter
-    const perfectEmail = `${cleanUsername}.smartspend@gmail.com`;
 
-    // Sign up normally, but pass custom metadata to forcefully activate the user instantly
-    const { data, error } = await supabase.auth.signUp({
-      email: perfectEmail,
-      password,
-      options: {
-        data: {
-          username: cleanUsername,
-        }
-      }
-    });
+    // 1. Check if the user already exists
+    const { data: existingUser } = await supabase
+      .from('users_credential')
+      .select('username')
+      .eq('username', cleanUsername)
+      .single();
 
-    if (error) throw error;
+    if (existingUser) {
+      return NextResponse.json({ error: 'Identity Conflict: Username is already taken.' }, { status: 400 });
+    }
 
-    // If Supabase creates the user but leaves them unconfirmed, we will auto-authorize them 
-    // on the Next.js side so the user doesn't face a wall.
-    return NextResponse.json({ user: data.user || { email: perfectEmail, id: 'authenticated_user' } }, { status: 200 });
+    // 2. Hash the password with a salt round of 10
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 3. Insert the SECURE hashed password into PostgreSQL
+    const { error: insertError } = await supabase
+      .from('users_credential')
+      .insert([{ username: cleanUsername, password: hashedPassword }]);
+
+    if (insertError) throw insertError;
+
+    return NextResponse.json({ 
+      user: { 
+        id: `user_id_${cleanUsername}`, 
+        email: `${cleanUsername}@smartspend.local`,
+        user_metadata: { username: cleanUsername }
+      } 
+    }, { status: 200 });
+
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
