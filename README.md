@@ -36,7 +36,8 @@ The core engineering objective was to solve the problem of secure data isolation
 
 ## ⚙️ System Architecture & Data Flow
 The platform is built on a decoupled, highly responsive full-stack model optimized for deployment on serverless edge networks:
-Client View: React/Next.js]
+
+[Client View: React/Next.js]
 │
 ▼ (Secure HTTP POST Payload + Session Identity Token)
 [Serverless API Layer: Node.js Route Handlers]
@@ -46,6 +47,7 @@ Client View: React/Next.js]
 ├─► [Cloud Storage: Supabase PostgreSQL DB Client Instance]
 │
 └─► [AI Intelligence: Google Gen AI SDK Engine via Gemini 2.5]
+
 
 1. **The Client Tier:** An asynchronous React single-page application built using Next.js client-side states, styled with Tailwind CSS, and using Lucide icons for UI instrumentation. Data distribution arrays are managed locally and mapped seamlessly onto dynamic vectors using Recharts.
 2. **The Serverless Backend Tier:** Handles state transmission, input validation, and secure execution loops through Next.js App Router API directory routes.
@@ -113,32 +115,29 @@ The **SmartSpend AI Budget Coach** bypasses standard chatbot configurations by u
 ├── README.md
 ├── package.json
 └── tailwind.config.js
-
----
-
-## 💡 Engineering Challenges & Resolving Technical Debt
+💡 Engineering Challenges & Resolving Technical Debt
 Developing this application involved tackling critical backend and data design architectural bugs:
 
-### 1. Eliminating Multi-Tenant Data Leaks
-- **The Problem:** The initial implementation of the AI Budget Coach compiled financial analysis summaries pulling from every single record present within the global database table, exposing private transaction entries across distinct client accounts.
-- **The Solution:** Restructured the API endpoint configuration from an unverified open query architecture into a hardened `POST` request routine. Implemented frontend string interpolation logic to securely pull the verified session token object identifier, passing it directly to backend database filter layers to ensure absolute multi-client data sandbox isolation.
+1. Eliminating Multi-Tenant Data Leaks
+The Problem: The initial implementation of the AI Budget Coach compiled financial analysis summaries pulling from every single record present within the global database table, exposing private transaction entries across distinct client accounts.
 
-### 2. Resolving Strict Data Type Constraints in PostgreSQL
-- **The Problem:** Upgrading the application identity framework from native UUID generation systems to custom runtime string handles caused database collision failures. PostgreSQL rejected queries with an `invalid input syntax for type uuid` error due to mismatch criteria on the `user_id` column.
-- **The Solution:** Executed a system schema migration utilizing targeted SQL alter data scripts to dynamically re-type the column constraints from standard 36-character `UUID` allocations to a flexible, high-performance `TEXT` schema layout, resolving transaction parsing failures instantly.
+The Solution: Restructured the API endpoint configuration from an unverified open query architecture into a hardened POST request routine. Implemented frontend string interpolation logic to securely pull the verified session token object identifier, passing it directly to backend database filter layers to ensure absolute multi-client data sandbox isolation.
 
----
+2. Resolving Strict Data Type Constraints in PostgreSQL
+The Problem: Upgrading the application identity framework from native UUID generation systems to custom runtime string handles caused database collision failures. PostgreSQL rejected queries with an invalid input syntax for type uuid error due to mismatch criteria on the user_id column.
 
-## 🚀 Future Enhancements
-- **Granular Custom Alerts:** Implementing background webhook monitors to trigger threshold alerts when spending tracking nears targeted budget caps.
-- **Automated Recurring Ledger Rows:** Engineering automated data cron-jobs to manage monthly student subscription allocations cleanly.
-- **OAuth Integration:** Expanding the security stack to support multi-factor single sign-on protocols alongside the custom credentials hashing pipeline.
+The Solution: Executed a system schema migration utilizing targeted SQL alter data scripts to dynamically re-type the column constraints from standard 36-character UUID allocations to a flexible, high-performance TEXT schema layout, resolving transaction parsing failures instantly.
 
----
+🚀 Future Enhancements
+Granular Custom Alerts: Implementing background webhook monitors to trigger threshold alerts when spending tracking nears targeted budget caps.
 
-## Acknowledgements
+Automated Recurring Ledger Rows: Engineering automated data cron-jobs to manage monthly student subscription allocations cleanly.
+
+OAuth Integration: Expanding the security stack to support multi-factor single sign-on protocols alongside the custom credentials hashing pipeline.
+
+Acknowledgements
 Developed independently to analyze multi-tenant full-stack design patterns, secure database token architectures, and serverless edge computation frameworks utilizing the Next.js ecosystem.
 
----
-**Developer:** Abhishek Tagalpallewar
-**Institution:** Indian Institute of Technology Gandhinagar (IITGN)
+Developer: Abhishek Tagalpallewar
+
+Institution: Indian Institute of Technology Gandhinagar (IITGN)
