@@ -1,51 +1,122 @@
-# SmartSpend AI 💸
+# SmartSpend AI
 
-An enterprise-grade, multi-tenant personal finance tracker and automated budgeting system engineered with Next.js and a cloud PostgreSQL instance. The platform features an isolated custom session authentication architecture, automated one-way cryptographic credentials protection, and a serverless pipeline orchestrating Generative AI to deliver personalized, context-bounded financial strategy insights.
+> AI-powered personal finance tracker built with Next.js, PostgreSQL, Supabase, and Google Gemini to help users manage expenses and receive personalized budgeting insights.
+
+🌐🌐 **Live Demo:** https://smart-spend-ai-nine.vercel.app/
+
 
 **Key Skills:** Full-Stack Software Engineering • Database Schema Design • Multi-Tenant Architecture • Cryptographic Security • Generative AI Orchestration • Serverless API Design • Data Isolation
 
 ---
 
+
+
 ## Table of Contents
-- [Overview](#overview)
-- [Project Highlights](#project-highlights)
-- [System Architecture & Data Flow](#system-architecture--data-flow)
-- [Database Schema Design](#database-schema-design)
-- [Security & Cryptographic Implementation](#security--cryptographic-implementation)
-- [Automated AI Budget Coach Orchestration](#automated-ai-budget-coach-orchestration)
-- [Repository Structure](#repository-structure)
-- [Engineering Challenges & Resolving Technical Debt](#engineering-challenges--resolving-technical-debt)
-- [Future Enhancements](#future-enhancements)
+
+* [Overview](#overview)
+* [Why I Built This](#why-i-built-this)
+* [Application Preview](#-application-preview)
+* [Features](#features)
+* [Tech Stack](#tech-stack)
+* [Project Highlights](#project-highlights)
+* [System Architecture & Data Flow](#️-system-architecture--data-flow)
+* [Database Schema Design](#-database-schema-design)
+* [Security & Cryptographic Implementation](#-security--cryptographic-implementation)
+* [Automated AI Budget Coach Orchestration](#-automated-ai-budget-coach-orchestration)
+* [Repository Structure](#-repository-structure)
+* [Engineering Challenges & Resolving Technical Debt](#-engineering-challenges--resolving-technical-debt)
+* [Future Enhancements](#-future-enhancements)
+* [Running Locally](#-running-locally)
+* [Acknowledgements](#acknowledgements)
 
 ---
 
 ## Overview
-This repository documents the end-to-end full-stack engineering of **SmartSpend AI**. Rather than relying on rigid, out-of-the-box software-as-a-service frameworks, this platform was designed from the ground up to explore custom multi-tenant data structures, state management optimization, and modern serverless application paradigms.
 
-The core engineering objective was to solve the problem of secure data isolation in a shared-database environment while introducing an asynchronous AI analytics pipeline. The resulting web application provides users with real-time financial tracking, fluid visual expense distribution parsing via interactive vector analytics, and context-aware financial planning insights powered by large language models.
+SmartSpend AI is a full-stack personal finance application that enables users to securely manage income and expenses while receiving AI-generated budgeting recommendations based on their financial history.
+
+The application is built with **Next.js**, **Supabase PostgreSQL**, **Tailwind CSS**, and **Google Gemini**, combining a modern React frontend with a serverless backend and cloud database. It implements custom authentication using **bcrypt** password hashing, isolates each user's financial records through tenant-aware database queries, and exposes REST-style API routes for transaction management and AI analysis.
+
+Beyond providing expense tracking, the project demonstrates practical software engineering concepts including secure authentication, relational database design, multi-user data isolation, serverless API development, and integration of large language models into production-style web applications.
+
 
 ---
 
-## 📋 Project Highlights
-- **Custom Auth Framework:** Bypassed third-party managed authentication providers to build a custom session management protocol executing secure tracking using optimized unique identity string handles.
-- **Data Isolation Sandbox:** Secured database queries down to individual tenant levels, eliminating multi-client data cross-contamination across all interactive dashboard components.
-- **Cryptographic Protection:** Integrated industry-standard password salting and hashing mechanisms to completely eliminate plaintext credentials storage vulnerabilities.
-- **Generative AI Orchestration Node:** Engineered a secure, isolated serverless backend controller that shapes, sanitizes, and streams compressed raw ledger arrays to advanced semantic analysis engines.
+## Why I Built This
+
+Most budgeting applications either focus solely on expense tracking or simply wrap an AI chatbot around financial data.
+
+This project was built to explore how modern full-stack web development, secure authentication, relational databases, and generative AI can be combined into a production-style application where every user has isolated financial data and receives personalized budgeting recommendations generated directly from their transaction history.
+---
+
+
+
+## 📷 Application Preview
+
+| Dashboard | AI Budget Coach |
+|------------|-----------------|
+| ![](public/images/dashboard.png) | ![](public/images/ai-coach.png) |
+
+| Login | Transactions |
+|-------|--------------|
+| ![](public/images/login.png) | ![](public/images/transactions.png) |
+
+
+## Features
+
+- 🔐 Custom authentication with bcrypt password hashing
+- 👤 Secure multi-user data isolation using Supabase
+- 💰 Income and expense tracking with CRUD operations
+- 📊 Interactive dashboard with spending analytics and charts
+- 🤖 AI-powered budgeting recommendations using Google Gemini
+- 📱 Responsive interface built with Next.js and Tailwind CSS
+- ☁️ Cloud-hosted PostgreSQL database
+- 🚀 Serverless backend using Next.js API Routes
+---
+## Tech Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Frontend | Next.js, React, Tailwind CSS |
+| Backend | Next.js API Routes |
+| Database | PostgreSQL (Supabase) |
+| Authentication | Custom Authentication, bcryptjs |
+| AI | Google Gemini API |
+| Charts | Recharts |
+| Deployment | Vercel | 
+---
+
+## Project Highlights
+
+- Built a complete full-stack application using Next.js App Router
+- Designed a multi-tenant PostgreSQL database with secure user isolation
+- Implemented custom authentication using bcrypt password hashing
+- Developed REST-style API routes for transaction CRUD operations
+- Integrated Google Gemini for AI-powered budgeting advice
+- Visualized financial data using interactive charts and analytics
+- Deployed the application on Vercel with Supabase as the backend
 
 ---
 
 ## ⚙️ System Architecture & Data Flow
 The platform is built on a decoupled, highly responsive full-stack model optimized for deployment on serverless edge networks:
-
-[Client View: React/Next.js]
-│
-▼ (Secure HTTP POST Payload + Session Identity Token)
-[Serverless API Layer: Node.js Route Handlers]
-│
-├─► [Security Module: bcryptjs verification & isolation checks]
-│
-├─► [Cloud Storage: Supabase PostgreSQL DB Client Instance]
-│
+                    ┌──────────────────────┐
+                    │     React Client     │
+                    │      (Next.js)       │
+                    └──────────┬───────────┘
+                               │
+                      HTTPS Requests
+                               │
+                    ┌──────────▼───────────┐
+                    │   Next.js API Routes │
+                    └──────┬─────────┬─────┘
+                           │         │
+                Database   │         │ AI Analysis
+                           │         │
+                 ┌─────────▼──┐   ┌──▼────────────┐
+                 │ PostgreSQL │   │ Gemini 2.5    │
+                 │ (Supabase) │   │ Google AI API │
+                 └────────────┘   └───────────────┘
 └─► [AI Intelligence: Google Gen AI SDK Engine via Gemini 2.5]
 
 
@@ -104,16 +175,17 @@ The **SmartSpend AI Budget Coach** bypasses standard chatbot configurations by u
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── ai-analyze/   # Secure serverless AI orchestration entry point
-│   │   │   ├── auth/         # Cryptographic login/signup server scripts
-│   │   │   └── transactions/ # Isolated PostgreSQL transactional CRUD routines
-│   │   ├── layout.tsx
-│   │   └── page.tsx          # Main high-performance ledger user interface
-│   └── utils/
-│       └── supabase.js       # Secured database communication abstraction client
+│   │   │   ├── ai-analyze/
+│   │   │   ├── auth/
+│   │   │   └── transactions/
+│   │   ├── components/
+│   │   ├── dashboard/
+│   │   └── page.tsx
+│   ├── utils/
+│   └── lib/
 ├── public/
-├── README.md
 ├── package.json
+└── README.md
 └── tailwind.config.js
 ```
 
@@ -138,6 +210,42 @@ Developing this application involved tackling critical backend and data design a
 - **Granular Custom Alerts:** Implementing background webhook monitors to trigger threshold alerts when spending tracking nears targeted budget caps.
 - **Automated Recurring Ledger Rows:** Engineering automated data cron-jobs to manage monthly student subscription allocations cleanly.
 - **OAuth Integration:** Expanding the security stack to support multi-factor single sign-on protocols alongside the custom credentials hashing pipeline.
+
+---
+
+
+---
+
+## 🚀 Running Locally
+
+Clone the repository:
+
+```bash
+git clone https://github.com/TagalpallewarAbhishek/SmartSpend-AI.git
+cd SmartSpend-AI
+```
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+Create a `.env.local` file in the project root and add your environment variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_google_ai_api_key
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000** in your browser.
 
 ---
 
